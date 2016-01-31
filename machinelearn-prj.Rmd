@@ -54,15 +54,16 @@ Remove columns "X", "timestamp", "window"
 Remove no-numeric variables
 ```{r}
 classe <- data$classe  #reserve classe
-
 dataRemove <- grepl("^X|timestamp|window", names(data))
 data <- data[, !dataRemove]
 data2 <- data[, sapply(data, is.numeric)]
 data2$classe <- classe
 
+classev <- validation$classe
 validationRemove <- grepl("^X|timestamp|window", names(validation))
 validation <- validation[, !validationRemove]
 validation2 <- validation[, sapply(validation, is.numeric)]
+validation2$classe <- classev
 ```
 
 
@@ -97,7 +98,7 @@ mod_rf   <- train(classe ~ ., data = training, method = "rf")
 Train boosting with trees
 ```{r, message=F, warning=F, cache=T}
 library(caret)
-mod_gbm   <- train(classe ~ ., data = training, method = "gbm")  
+mod_gbm   <- train(classe ~ ., data = training, method = "gbm",verbose=FALSE)  
 ```
 
 Train linear discriminant analysis
@@ -107,8 +108,10 @@ mod_lda   <- train(classe ~ ., data = training, method = "lda")
 ```
 
 
+### Cross validation
+
 Predict with all models and test accuracy
-```{r}
+```{r, message=F, warning=F, cache=T}
 # Accuracy using trees
 pred_tree  <- predict(mod_tree, testing)
 confusionMatrix(pred_tree, testing$classe)$overall[1]
@@ -125,13 +128,15 @@ confusionMatrix(pred_gbm, testing$classe)$overall[1]
 pred_lda <- predict(mod_lda, testing)
 confusionMatrix(pred_lda, testing$classe)$overall[1]
 
-# Accuracy using the lasso
-pred_lass <- predict(mod_lass, testing)
-confusionMatrix(pred_lass, testing$classe)$overall[1]
 ```
 
+**Best accuracy with random forest model**.
 
-```{r}
 
+## Validation prediction
+
+```{r, message=F, warning=F, cache=T}
+pred_val <- predict(mod_rf, validation2)
+pred_val
 ```
 
